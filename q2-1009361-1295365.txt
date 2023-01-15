@@ -1,0 +1,25 @@
+First thing, when looking at the data and the way the label is encoded, we have 0 for neutral, 1 for against and 2 for support. 
+This is not a very well encoded. While the neutral level is encoded correctly,
+the against label is encoded as a 1. Since neutral is between against and support, an encode as follows would be better:
+-1 for against, 
+0 for neutral
+ and 1 for support, 
+or:
+0 for against, 
+1 for neutral and
+1 for support.
+A limitation of the implementation is that the class/function only tokenizes the input data. 
+Tokenization is the process of breaking down a string of text into individual words or tokens,
+but it does not necessarily capture the context or relationships between those tokens.
+This may affect downstream performance because some models, such as those based on word embeddings, 
+rely on the context and relationships between words to accurately represent the meaning of the text.
+
+The normalized method only handles hashtags and numbers and does not address other types of noise
+or inconsistencies in the data, such as misspellings. This may reduce the effectiveness of the function.
+  
+Suppose the Vectorizer class is used in a pipeline for feature representation without additional preprocessing 
+or feature engineering steps. 
+In that case, the resulting vectors may not capture important information about the context or relationships between words. 
+This could negatively impact classification accuracy.
+Lack of normalization or scaling of the final feature vectors may result in features with different ranges or distributions having 
+a disproportionate influence on the classification model, leading to poor performance.

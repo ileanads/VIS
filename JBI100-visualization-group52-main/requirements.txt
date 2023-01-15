@@ -1,0 +1,8 @@
+dash
+plotly
+cufflinks
+gunicorn
+numpy
+pandas
+colormap
+easydev
