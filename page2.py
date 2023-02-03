@@ -15,7 +15,11 @@ airbnb_data = pd.read_csv("/Users/ileanacrudu/Downloads/VIS/airbnb_open_data.csv
 airbnb_data["price"] = airbnb_data["price"].str.replace("$", "")
 airbnb_data["price"] = airbnb_data["price"].str.replace(",", "")
 airbnb_data["service fee"] = airbnb_data["service fee"].str.replace("$", "")
+airbnb_data["service fee"] = airbnb_data["service fee"].str.replace(",", "")
+
 airbnb_data["price"] = airbnb_data["price"].astype('Int64')
+airbnb_data["service fee"] = airbnb_data["service fee"].astype('Int64')
+
 nbh = airbnb_data["neighbourhood"].dropna().unique().tolist()
 card1 = dbc.Card(children=[
     dbc.CardBody([
@@ -35,9 +39,15 @@ layout1 = html.Div(
         html.H3("AirBnb Data"),
         dcc.Dropdown(options = nbh, id = "nbh_dropdown", multi=False, placeholder="Select a neighborhood"),
         card1,
-        dcc.Graph(id='nbh_graph'),
-        dcc.Graph(id = "room_graph"),
-        dcc.Graph(id = "year_graph"),
+        html.Div(className='row', children=[
+            html.Div(className='col-4', children=[
+                dcc.Graph(id='nbh_graph'),]),
+            html.Div(className='col-4', children=[
+                dcc.Graph(id='service_fee_graph'),]),
+            html.Div(className='col-4', children=[
+            
+                dcc.Graph(id = "room_graph"),])
+        ]),
         dcc.Graph(id = "violin")])
 
 
@@ -46,8 +56,8 @@ layout1 = html.Div(
     Output('card_num1','children'),
     Output('card_text1','children'),
     Output("nbh_graph", "figure"),
+    Output("service_fee_graph", "figure"),
     Output("room_graph", "figure"),
-    Output("year_graph", "figure"),
     Output("violin", "figure")
    ],
     Input('nbh_dropdown','value')
@@ -59,22 +69,24 @@ def update_card(nbh_select):
         nbh_df = df[df["neighbourhood"]==nbh_select].sort_values(by =["price"])
         output1 = nbh_select + " has a total of " + str(nbh_df["id"].count()) + " properties listed"
         output2 = "Average property price per night: " +  str(round(nbh_df["price"].astype(float).mean(),2)) + "$"
-        fig = px.histogram(nbh_df, x = "price", nbins = 30,width=1400,height=1400)
-        room_fig = px.pie(nbh_df, names = "room type", width=1400, height=1400)
-        year_fig = px.histogram(nbh_df, x = "Construction year", nbins = 30, width=1400, height=1400)
-        vio = px.violin(nbh_df,y ="availability 365",box=True, title = "Violin plot of Availability",width=1400, height=1400)
+        fig = px.histogram(nbh_df, x = "price",color="room type", nbins = 30,title = "Price distribution")
+        fig2 = px.histogram(nbh_df, x = "service fee",color="room type", nbins = 30, title= "Service Fee distribution")
+
+        room_fig = px.pie(nbh_df, names = "room type", title= "% per room type")
+        vio = px.violin(nbh_df,x = "room type",y ="price",color ="room type",box=True, title = "Violin plot of Prices per Night")
 
 
     else:
         output1 =  "New York City has a total of " + str(df["id"].count()) + " properties listed"
         output2 = "Average property price per night: " +  str(round(df["price"].astype(float).mean(),2)) + "$"
-        fig = px.histogram(df, x = "price", nbins = 30, color_discrete_sequence=['indianred'])
+        fig = px.histogram(df, x = "price", nbins = 30, color="room type", color_discrete_sequence=['indianred'])
+        fig2 = px.histogram(nbh_df, x = "service fee",color="room type", nbins = 30)
+
         room_fig = px.pie(df, values = "id", names = "room type")
-        year_fig = px.histogram(df, x = "Construction year", nbins = 30)
-        vio = px.violin(df,y ="availability 365", box=True,title = "Violin plot of Availability")
+        vio = px.violin(df,y ="price", color = "room type",box=True,title = "Violin plot of Price")
         
 
 
-    return output1, output2, fig, room_fig,year_fig, vio
+    return output1, output2, fig, fig2, room_fig,vio
 
 
