@@ -11,7 +11,7 @@ from dash import dash_table
 import dash_bootstrap_components as dbc
 import app
 
-airbnb_data = pd.read_csv("/Users/ileanacrudu/Downloads/VIS/airbnb_open_data.csv", low_memory=False)
+airbnb_data = pd.read_csv("airbnb_open_data.csv", low_memory=False)
 airbnb_data["price"] = airbnb_data["price"].str.replace("$", "")
 airbnb_data["price"] = airbnb_data["price"].str.replace(",", "")
 airbnb_data["service fee"] = airbnb_data["service fee"].str.replace("$", "")

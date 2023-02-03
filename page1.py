@@ -75,7 +75,6 @@ df2 = df.dropna(subset=["accommodates"])
 df2["price"] =pd.to_numeric(df2["price"])
 df2["accommodates"] =pd.to_numeric(df2["accommodates"])
 mean_df = df.groupby("neighbourhood_group_cleansed")[["review_scores_communication","review_scores_rating", "review_scores_cleanliness", "review_scores_checkin", "review_scores_location", "review_scores_value"]].mean().round(2).reset_index()
-print(mean_df)
 criteria = ["review_scores_communication","review_scores_rating", "review_scores_cleanliness", "review_scores_checkin", "review_scores_location", "review_scores_value"]
 trace = go.Heatmap(x = df['number_of_reviews'],
                    y = df['review_scores_rating'],
@@ -92,11 +91,11 @@ prop_type_counts = df.groupby(['property_type', 'neighbourhood_group_cleansed'])
 fig_room = px.bar(room_type_counts, x='room_type', y='id', color='neighbourhood_group_cleansed', barmode='stack',
  labels={"id": "Properties Count",
  "room_type" : "Room Type", "neighbourhood_group_cleansed": "Neighbourhood"}, title = "Room type count")
-host_verified = px.bar(host_verified_counts, x = "host_identity_verified", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title =" Host Identity Verification")
+host_verified = px.bar(host_verified_counts, x = "host_identity_verified", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title =" Host Identity Verification", labels={"id": " Count"})
 host_superhost_count = df.groupby(['host_is_superhost', 'neighbourhood_group_cleansed'])['id'].count().reset_index()
-host_superhost = px.bar(host_superhost_count, x = "host_is_superhost", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title = "Superhosts")
+host_superhost = px.bar(host_superhost_count, x = "host_is_superhost", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title = "Superhosts", labels={"id": " Count"})
 instant_bookable_count = df.groupby(['instant_bookable', 'neighbourhood_group_cleansed'])['id'].count().reset_index()
-instant_book = px.bar(instant_bookable_count, x = "instant_bookable", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title ="Instant bookable property")
+instant_book = px.bar(instant_bookable_count, x = "instant_bookable", y= "id", color='neighbourhood_group_cleansed', barmode='stack', title ="Instant bookable property", labels={"id": " Count"})
 fig_room.update_layout(legend=dict(
     orientation="h",
     yanchor="bottom",
@@ -156,7 +155,7 @@ layout = html.Div([
     dcc.RadioItems(
         id='price_type',
         options=options_price,
-        value='price',
+        value='log_price',
         labelStyle={'display': 'inline-block'}
     ),
     dcc.Graph(id='mapbox-scatter'),
@@ -297,12 +296,11 @@ def update_scatter_plot(selected_availability, price_range):
     Input("price_type", "value"))
 def generate_graph(price_type):
     if price_type == 'price':
-        p = 'price'
         map_fig = px.scatter_mapbox(df, lat='latitude', lon='longitude', text='name',
                         color='neighbourhood_group_cleansed',
-                        size=p, size_max=60,
+                        size=price_type, size_max=60,
                         color_discrete_sequence=px.colors.qualitative.G10,
-                        zoom=10, height=550, hover_data=['price', 'property_type'])
+                        zoom=10, height=550, hover_data=['price',"neighbourhood_cleansed", 'property_type'])
         map_fig.update_layout(mapbox_style="open-street-map", legend=dict(
             y=1.02,
             xanchor="left",
@@ -316,19 +314,28 @@ def generate_graph(price_type):
                     zoom=10, height=550)
         map_fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
+    elif price_type == "log_price":
+        df_temp = df[df["log_price"] >0]
+        map_fig = px.scatter_mapbox(df_temp, lat='latitude', lon='longitude', color='log_price',
+                 hover_name='property_type',
+                 hover_data=['property_type', "neighbourhood_cleansed"],
+                 color_continuous_scale=px.colors.sequential.Plasma)
+
+
+        map_fig.update_layout(mapbox_style="open-street-map", legend=dict(y=1.02,xanchor="left",x=1),margin={"r":0,"t":0,"l":0,"b":0})   
+
     else:
         p = 'log_price'
         df_temp = df[df["log_price"] >0]
         map_fig = px.scatter_mapbox(df_temp, lat='latitude', lon='longitude', color='log_price',
                  hover_name='property_type',
-                 hover_data=['price', 'property_type'],
+                 hover_data=["neighbourhood_cleansed",'property_type'],
                  color_continuous_scale=px.colors.sequential.Plasma)
 
 
-        map_fig.update_layout(mapbox_style="open-street-map", legend=dict(y=1.02,xanchor="left",x=1))
-        map_fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        map_fig.update_layout(mapbox_style="open-street-map", legend=dict(y=1.02,xanchor="left",x=1),margin={"r":0,"t":0,"l":0,"b":0})
 
     return map_fig
 
-def update_plot(price_type):
+def update_map(price_type):
     return generate_graph(price_type)
