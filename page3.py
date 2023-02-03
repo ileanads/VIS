@@ -20,7 +20,7 @@ import io
 import base64
 from wordcloud import WordCloud
 
-airbnb_data = pd.read_csv("/Users/ileanacrudu/Downloads/VIS/airbnb_open_data.csv", low_memory=False)
+airbnb_data = pd.read_csv("airbnb_open_data.csv", low_memory=False)
 df = pd.read_csv("listings.csv", low_memory=False)
 df["price"] = df["price"].str.replace("$", "")
 df["price"] = df["price"].str.replace(",", "")
